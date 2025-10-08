@@ -1,11 +1,11 @@
 import cv2
 
 from util.camera_context import CameraContext
-from util.eyetracker_image import ActlblImage
+from util.eyetracker_image import EyetrackerImage
 from util.faceparser_wrapper import resize_for_faceparser
 
 
-class ActlblApplication:
+class EyetrackerApplication:
     def __init__(self, video_source):
         self.video_source = video_source
         self.camera_context = CameraContext()
@@ -24,10 +24,10 @@ class ActlblApplication:
         while video_capture.isOpened():
             try:
                 ret, frame = video_capture.read()
-                labeled_image = ActlblImage(cv2.resize(frame, (512, 512)), resize_for_faceparser(frame), self.camera_context)
+                labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)), resize_for_faceparser(frame), self.camera_context)
                 if application_callback is not None:
                     application_callback(labeled_image)
-            
+
                 self.camera_context.timer.tick_sec()  # increment timer tick
 
                 cv2.imshow('frame', labeled_image.raw_image)

@@ -5,14 +5,14 @@ from util import faceparser_wrapper
 from util.camera_context import CameraContext
 
 
-class ActlblImage:
+class EyetrackerImage:
     """
     Wrapper class for images
 
     Attributes:
         raw_image: Raw image data in numpy array
         camera_context: CameraContext instance
-        keypoints: Movenet keypoints data
+        keypoints: FaceParser keypoints data
     """
     
     def __init__(self, original_image: np.ndarray, image: np.ndarray, camera_context: CameraContext):

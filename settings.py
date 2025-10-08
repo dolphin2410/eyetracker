@@ -15,52 +15,52 @@
 
 import os
 
-def actlbl_configuration(configuration_name):
+def eyetracker_configuration(configuration_name):
     configuration_value = str(os.environ.get(configuration_name))
     print(f"{configuration_name}: {configuration_value}")
     return lambda x: x
 
-@actlbl_configuration("actlbl_dbg")
+@eyetracker_configuration("eyetracker_dbg")
 def is_debug():
     """Returns whether this project is run in debug mode
 
     Returns:
         Whether this project is run in debug mode, defaulting to True
     """
-    return bool(os.environ.get("actlbl_dbg", "True"))
+    return bool(os.environ.get("eyetracker_dbg", "True"))
 
 
-@actlbl_configuration("actlbl_movenet_path")
+@eyetracker_configuration("eyetracker_weights_path")
 def get_model_path():
-    """Returns movenet path
+    """Returns weights path
 
     Returns:
-        Movenet Path specified in the environment variable, or a default movenet location
+        Weight Path specified in the environment variable, or a default weights location
     """
-    return str(os.environ.get("actlbl_movenet_path", "./face_parsing/weights/resnet34.pt"))
+    return str(os.environ.get("eyetracker_weights_path", "./face_parsing/weights/resnet34.pt"))
 
 
-@actlbl_configuration("actlbl_mjpeg_port")
+@eyetracker_configuration("eyetracker_mjpeg_port")
 def get_mjpeg_port():
     """Returns mjpeg server port
 
     Returns:
         Set MJPEG server port, or a default port
     """
-    return int(os.environ.get("actlbl_mjpeg_port", "8080"))
+    return int(os.environ.get("eyetracker_mjpeg_port", "8080"))
 
 
-@actlbl_configuration("actlbl_mjpeg_channel_name")
+@eyetracker_configuration("eyetracker_mjpeg_channel_name")
 def get_mjpeg_channel_name():
     """Returns mjpeg server port
 
     Returns:
         Set MJPEG server port, or a default port
     """
-    return str(os.environ.get("actlbl_mjpeg_channel_name", "my_camera"))
+    return str(os.environ.get("eyetracker_mjpeg_channel_name", "my_camera"))
 
 
-@actlbl_configuration("actlbl_target_model_path")
+@eyetracker_configuration("eyetracker_target_model_path")
 def get_target_model_path():
     """Returns target model path to save after training
 
@@ -68,18 +68,18 @@ def get_target_model_path():
         Set target model path, or a default path
     """
 
-    return str(os.environ.get("actlbl_target_model_path", "./model/actlbl_model.keras"))
+    return str(os.environ.get("eyetracker_target_model_path", "./model/eyetracker_model.keras"))
 
 
-@actlbl_configuration("actlbl_frames_per_sample")
+@eyetracker_configuration("eyetracker_frames_per_sample")
 def get_frames_per_sample():
     """Frames per sample, defaults to 25"""
 
-    return int(os.environ.get("actlbl_frames_per_sample", "32"))
+    return int(os.environ.get("eyetracker_frames_per_sample", "32"))
 
 
-@actlbl_configuration("actlbl_max_frames_in_history")
+@eyetracker_configuration("eyetracker_max_frames_in_history")
 def get_max_frames_in_history():
     """Max frames in history, defaults to 100"""
 
-    return int(os.environ.get("actlbl_max_frames_in_history", "32"))
+    return int(os.environ.get("eyetracker_max_frames_in_history", "32"))

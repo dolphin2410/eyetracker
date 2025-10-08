@@ -1,4 +1,4 @@
-from util.faceparser_history import ActlblHistory
+from util.eyetracker_history import EyetrackerHistory
 from util.timer import Timer
 
 
@@ -24,4 +24,4 @@ class CameraContext:
 
         self.timer = Timer()
         self.settings = {}
-        self.history_manager = ActlblHistory()
+        self.history_manager = EyetrackerHistory()

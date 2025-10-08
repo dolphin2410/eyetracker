@@ -114,7 +114,7 @@ def filter_not(list_keypoints):
 
 
 def load_faceparser_model(device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
-    """Loads Movenet Model"""
+    """Loads FaceParser Model"""
     global faceparser_model
 
     faceparser_model = BiSeNet(len(KEYPOINT_INDEX_TO_NAME), backbone_name="resnet34")
@@ -124,7 +124,7 @@ def load_faceparser_model(device=torch.device("cuda" if torch.cuda.is_available(
 
 def objectify_keypoints(keypoints: np.ndarray[np.ndarray]) -> np.ndarray[Keypoint]:
     """
-    objectify raw keypoints returned from movenet. Converts a list of 17 keypoints (y, x, confidence)
+    objectify raw keypoints returned from FaceParser. Converts a list of 17 keypoints (y, x, confidence)
     """
 
     keypoint_list = [Keypoint(KeypointType(idx), kp[0]) for idx, kp in enumerate(keypoints)]
@@ -135,7 +135,7 @@ def objectify_keypoints(keypoints: np.ndarray[np.ndarray]) -> np.ndarray[Keypoin
 def parse_keypoints(image: np.ndarray, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
     """Returns a list of keypoints parsed from the given image.
 
-    Movenet model should be loaded before call of this function
+    FaceParser model should be loaded before call of this function
 
     Args:
         image: Image to parse keypoints from

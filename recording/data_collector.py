@@ -1,18 +1,18 @@
 import cv2
 import numpy as np
-from core.application import ActlblApplication
-from util.faceparser_history import ActlblHistoryFrame
-from util.eyetracker_image import ActlblImage
+from core.application import EyetrackerApplication
+from util.eyetracker_history import EyetrackerHistoryFrame
+from util.eyetracker_image import EyetrackerImage
 from util.faceparser_wrapper import KEYPOINT_INDEX_TO_NAME
 
-def application_callback(image: ActlblImage):
+def application_callback(image: EyetrackerImage):
     camera_context = image.camera_context
 
     image.raw_image = camera_context.timer.display_timer(image.raw_image)
 
     if "start_record" in camera_context.settings:
         if camera_context.settings["start_record"]:
-            frame = ActlblHistoryFrame(image.keypoints)
+            frame = EyetrackerHistoryFrame(image.keypoints)
             camera_context.history_manager.append_frame(frame)
         else:
             camera_context.history_manager.save_history()
@@ -61,7 +61,7 @@ def application_callback(image: ActlblImage):
     image.raw_image[:new.shape[0], :new.shape[1]] = new
 
         
-def exit_callback(application: ActlblApplication):
+def exit_callback(application: EyetrackerApplication):
     camera_context = application.camera_context
 
     if "start_record" in camera_context.settings and camera_context.settings["start_record"]:
@@ -70,7 +70,7 @@ def exit_callback(application: ActlblApplication):
 
 class LiveDataCollector():
     def __init__(self):
-        self.application = ActlblApplication(0)
+        self.application = EyetrackerApplication(0)
 
     def start_collector(self):
         camera_context = self.application.camera_context
@@ -91,7 +91,7 @@ class LiveDataCollector():
 class VideoDataCollector():
     def __init__(self, video_path):
         self.video_path = video_path
-        self.application = ActlblApplication(video_path)
+        self.application = EyetrackerApplication(video_path)
 
     def start_collector(self):
         self.application.camera_context.settings["start_record"] = True
