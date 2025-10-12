@@ -25,7 +25,10 @@ class EyetrackerImage:
         """
 
         self.raw_image = original_image
+        self.camera_context = camera_context
+
         parsed_face, x_size, y_size = parse_face(original_image)
         self.yolo_parsed_image = cv2.resize(original_image[parsed_face].reshape(y_size, x_size, 3), original_image.shape[0:2])
-        self.camera_context = camera_context
-        self.keypoints = faceparser_wrapper.parse_keypoints(np.array([faceparser_wrapper.resize_for_faceparser(self.yolo_parsed_image)]))
+
+        image_for_faceparser = np.array([faceparser_wrapper.resize_for_faceparser(self.yolo_parsed_image)])
+        self.keypoints = faceparser_wrapper.parse_keypoints(image_for_faceparser)
