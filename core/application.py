@@ -12,8 +12,8 @@ class EyetrackerApplication:
 
     def start_application(self, application_callback = None, exit_callback = None):  # todo: maybe non-blocking code?
         """
-        application_callback: ActlblImage -> None
-        exit_callback: Actlbl Application -> None
+        application_callback: EyetrackerImage -> None
+        exit_callback: EyetrackerApplication -> None
         """
         
         self.is_valid = True
