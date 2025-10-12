@@ -21,10 +21,10 @@ class EyetrackerApplication:
             try:
                 _, frame = video_capture.read()
 
-                labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)), self.camera_context)
+                labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)))
                 
                 if application_callback is not None:
-                    application_callback(labeled_image)
+                    application_callback(labeled_image, self.camera_context)
 
                 self.camera_context.timer.increment_tick_lazy()  # increment timer tick
 

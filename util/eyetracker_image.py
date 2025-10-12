@@ -16,7 +16,7 @@ class EyetrackerImage:
         keypoints: FaceParser keypoints data
     """
     
-    def __init__(self, original_image: np.ndarray, camera_context: CameraContext):
+    def __init__(self, original_image: np.ndarray):
         """Initializes a LabeledImage object
 
         Args:
@@ -25,7 +25,6 @@ class EyetrackerImage:
         """
 
         self.raw_image = original_image
-        self.camera_context = camera_context
 
         parsed_face, x_size, y_size = parse_face(original_image)
         self.yolo_parsed_image = cv2.resize(original_image[parsed_face].reshape(y_size, x_size, 3), original_image.shape[0:2])

@@ -1,12 +1,11 @@
 import numpy as np
 from core.application import EyetrackerApplication
+from util.camera_context import CameraContext
 from util.eyetracker_history import EyetrackerHistoryFrame
 from util.eyetracker_image import EyetrackerImage
 from util.faceparser_wrapper import KEYPOINT_INDEX_TO_NAME
 
-def application_callback(image: EyetrackerImage):
-    camera_context = image.camera_context
-
+def application_callback(image: EyetrackerImage, camera_context: CameraContext):
     image.raw_image = camera_context.timer.display_timer(image.raw_image)
 
     if "start_record" in camera_context.settings:
