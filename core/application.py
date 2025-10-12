@@ -16,14 +16,11 @@ class EyetrackerApplication:
         exit_callback: EyetrackerApplication -> None
         """
         
-        self.is_valid = True
-        
         video_capture = cv2.VideoCapture(self.video_source)
-
 
         while video_capture.isOpened():
             try:
-                ret, frame = video_capture.read()
+                _, frame = video_capture.read()
                 labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)), self.camera_context)
                 if application_callback is not None:
                     application_callback(labeled_image)
