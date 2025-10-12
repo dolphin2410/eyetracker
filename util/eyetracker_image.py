@@ -3,6 +3,7 @@ import numpy as np
 
 from util import faceparser_wrapper
 from util.camera_context import CameraContext
+from util.yolo_wrapper import parse_face
 
 
 class EyetrackerImage:
@@ -15,7 +16,7 @@ class EyetrackerImage:
         keypoints: FaceParser keypoints data
     """
     
-    def __init__(self, original_image: np.ndarray, image: np.ndarray, camera_context: CameraContext):
+    def __init__(self, original_image: np.ndarray, camera_context: CameraContext):
         """Initializes a LabeledImage object
 
         Args:
@@ -24,5 +25,7 @@ class EyetrackerImage:
         """
 
         self.raw_image = original_image
+        parsed_face, x_size, y_size = parse_face(original_image)
+        self.yolo_parsed_image = cv2.resize(original_image[parsed_face].reshape(y_size, x_size, 3), original_image.shape[0:2])
         self.camera_context = camera_context
-        self.keypoints = faceparser_wrapper.parse_keypoints(np.array([image]))
+        self.keypoints = faceparser_wrapper.parse_keypoints(np.array([faceparser_wrapper.resize_for_faceparser(self.yolo_parsed_image)]))

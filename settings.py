@@ -70,6 +70,15 @@ def get_target_model_path():
 
     return str(os.environ.get("eyetracker_target_model_path", "./model/eyetracker_model.keras"))
 
+@eyetracker_configuration("eyetracker_yolo_model_path")
+def get_yolo_model_path():
+    """Returns YOLO model path
+    
+    Returns:
+        Set YOLO model path, or a default path
+    """
+
+    return str(os.environ.get("eyetracker_yolo_model_path", "./yolov12n-face.pt"))
 
 @eyetracker_configuration("eyetracker_frames_per_sample")
 def get_frames_per_sample():

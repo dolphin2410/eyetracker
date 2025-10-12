@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 from core.application import EyetrackerApplication
 from util.eyetracker_history import EyetrackerHistoryFrame
@@ -23,6 +22,8 @@ def application_callback(image: EyetrackerImage):
         keypoint_name = KEYPOINT_INDEX_TO_NAME[keypoint_index]
         if keypoint_name == "left_eye" or keypoint_name == "right_eye":
             matrix[keypoint_data] = 1
+
+    image.raw_image = image.yolo_parsed_image
     
     if matrix.sum() == 0:
         image.raw_image = np.zeros((512, 512, 3)).astype(np.uint8)
@@ -40,8 +41,8 @@ def application_callback(image: EyetrackerImage):
     # bottom left 50 19 63 17 -> 아래볼수록
     # bottom right 83 12 57 15
 
-    white_part = np.logical_and(new.mean(axis=2) >= 100, new_mask == 1)
-    black_part = np.logical_and(new.mean(axis=2) < 100, new_mask == 1)
+    white_part = np.logical_and(new.mean(axis=2) >= 50, new_mask == 1)  # TODO: Fix this hardcoded value
+    black_part = np.logical_and(new.mean(axis=2) < 50, new_mask == 1)
 
     if white_part.sum() == 0 or black_part.sum() == 0:
         return
