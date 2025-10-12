@@ -2,7 +2,6 @@ import cv2
 
 from util.camera_context import CameraContext
 from util.eyetracker_image import EyetrackerImage
-from util.faceparser_wrapper import resize_for_faceparser
 
 
 class EyetrackerApplication:
@@ -10,7 +9,7 @@ class EyetrackerApplication:
         self.video_source = video_source
         self.camera_context = CameraContext()
 
-    def start_application(self, application_callback = None, exit_callback = None):  # todo: maybe non-blocking code?
+    def start_application(self, application_callback = None, exit_callback = None):
         """
         application_callback: EyetrackerImage -> None
         exit_callback: EyetrackerApplication -> None
@@ -21,11 +20,13 @@ class EyetrackerApplication:
         while video_capture.isOpened():
             try:
                 _, frame = video_capture.read()
+
                 labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)), self.camera_context)
+                
                 if application_callback is not None:
                     application_callback(labeled_image)
 
-                self.camera_context.timer.tick_sec()  # increment timer tick
+                self.camera_context.timer.increment_tick_lazy()  # increment timer tick
 
                 cv2.imshow('frame', labeled_image.raw_image)
 

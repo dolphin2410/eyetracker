@@ -19,8 +19,7 @@ class Timer:
         self.ticks_passed = 0
         self.registered_tasks = {}
 
-    # TODO: better naming
-    def tick_sec(self):
+    def increment_tick_lazy(self):
         """Increase tick every second, executes registered action"""
 
         current_time = time.time()
