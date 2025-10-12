@@ -3,7 +3,7 @@ from ultralytics import YOLO
 
 from settings import get_yolo_model_path
 
-def initialize_yolo_model():
+def load_yolo_model():
     global yolo_model
     yolo_model = YOLO(get_yolo_model_path())
 

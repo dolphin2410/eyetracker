@@ -1,8 +1,8 @@
 from recording.data_collector import LiveDataCollector
 from util.faceparser_wrapper import load_faceparser_model
-from util.yolo_wrapper import initialize_yolo_model
+from util.yolo_wrapper import load_yolo_model
 
 load_faceparser_model()
-initialize_yolo_model()
+load_yolo_model()
 live_data_collector = LiveDataCollector()
 live_data_collector.start_collector()
