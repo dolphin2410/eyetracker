@@ -48,10 +48,10 @@ def application_callback(image: EyetrackerImage, camera_context: CameraContext):
 
     x_pos_mask = np.arange(new_mask.shape[1])
     y_pos_mask = np.arange(new_mask.shape[0]).reshape(-1, 1).repeat(new_mask.shape[1], axis=1)
-    print((x_pos_mask * white_part).sum() / white_part.sum())
-    print((y_pos_mask * white_part).sum() / white_part.sum())
-    print((x_pos_mask * black_part).sum() / black_part.sum())
-    print((y_pos_mask * black_part).sum() / black_part.sum())
+    print("흰자 x좌표\t", (x_pos_mask * white_part).sum() / white_part.sum())
+    print("흰자 y좌표\t", (y_pos_mask * white_part).sum() / white_part.sum())
+    print("검은자 x좌표\t", (x_pos_mask * black_part).sum() / black_part.sum())
+    print("검은자 y좌표\t", (y_pos_mask * black_part).sum() / black_part.sum())
     print("----")
 
     new[white_part] = 255
