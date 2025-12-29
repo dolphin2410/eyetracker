@@ -30,11 +30,12 @@ class EyetrackerApplication:
                     application_callback(labeled_image, self.camera_context)
 
                 self.camera_context.timer.increment_tick_lazy()  # increment timer tick
+                
+                # TODO: Fix thread-unsafe code
+                # cv2.imshow('frame', labeled_image.raw_image)
 
-                cv2.imshow('frame', labeled_image.raw_image)
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+                # if cv2.waitKey(1) & 0xFF == ord('q'):
+                #     break
 
             except Exception as error:
                 print(error)

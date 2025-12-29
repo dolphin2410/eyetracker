@@ -105,10 +105,13 @@ class LiveDataCollector():
             camera_context.settings["start_record"] = False
             print("recording ended!!!")
 
-        camera_context.timer.register_action(3, start_record)
-        camera_context.timer.register_action(5, end_record)
+        camera_context.timer.register_action(0, start_record)
+        camera_context.timer.register_action(10000000, end_record)
 
-        self.application.start_application(application_callback, exit_callback)
+        def worker():
+            self.application.start_application(application_callback, exit_callback)
+
+        threading.Thread(target=worker, daemon=True).start()
 
 class VideoDataCollector():
     def __init__(self, video_path):
