@@ -46,7 +46,6 @@ class EyeTrackerCalibration:
     def __init__(self, root):
         self.root = root
 
-        # 🔹 fullscreen
         root.attributes("-fullscreen", True)
         root.configure(bg="black")
         root.bind("<Escape>", lambda e: root.destroy())
@@ -63,29 +62,24 @@ class EyeTrackerCalibration:
         )
         self.canvas.pack(fill="both", expand=True)
 
-        # 🔹 calibration params
         self.targets = generate_random_targets(self.W, self.H, n_points=20)
         self.samples_per_target = 4
-        self.sample_rest_ms = 500        # ✅ 쉬는 타임
-        self.initial_stabilize_ms = 700   # 타겟 표시 후 첫 샘플 전 안정 시간
+        self.sample_rest_ms = 500
+        self.initial_stabilize_ms = 700
 
-        # data
         self.eye_samples = []
         self.screen_samples = []
 
         self.current_target_idx = 0
         self.current_eye_buffer = []
 
-        # affine model
         self.A = None
         self.b = None
 
-        # tracking
         self.prev_screen_point = None
 
         self.root.after(1000, self.show_target)
 
-    # ----------------------------------
     def show_target(self):
         if self.current_target_idx >= len(self.targets):
             self.finish_calibration()
@@ -104,16 +98,13 @@ class EyeTrackerCalibration:
 
         self.current_eye_buffer = []
 
-        # ⏱ 안정 시간 후 첫 샘플
         self.root.after(self.initial_stabilize_ms, self.collect_sample)
 
-    # ----------------------------------
     def collect_sample(self):
         ex, ey = get_eyeball_loc()
         self.current_eye_buffer.append([ex, ey])
 
         if len(self.current_eye_buffer) < self.samples_per_target:
-            # 💤 휴식 후 다음 샘플
             self.root.after(self.sample_rest_ms, self.collect_sample)
         else:
             mean_eye = np.mean(self.current_eye_buffer, axis=0)
@@ -124,13 +115,11 @@ class EyeTrackerCalibration:
             self.current_target_idx += 1
             self.show_target()
 
-    # ----------------------------------
     def finish_calibration(self):
         print("Calibration finished")
         self.fit_affine_model()
         self.run_tracking()
 
-    # ----------------------------------
     def fit_affine_model(self):
         E = np.array(self.eye_samples)
         S = np.array(self.screen_samples)
@@ -146,17 +135,14 @@ class EyeTrackerCalibration:
         print("A =\n", self.A)
         print("b =", self.b)
 
-    # ----------------------------------
     def eye_to_screen(self, ex, ey):
         return self.A @ np.array([ex, ey]) + self.b
 
-    # ----------------------------------
     def run_tracking(self):
         self.canvas.delete("all")
         self.prev_screen_point = None
         self.track_loop()
 
-    # ----------------------------------
     def track_loop(self):
         ex, ey = get_eyeball_loc()
         sx, sy = self.eye_to_screen(ex, ey)
@@ -173,7 +159,6 @@ class EyeTrackerCalibration:
         self.root.after(16, self.track_loop)
 
 
-# =====================================
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Eye Tracker Calibration (with Rest Time)")

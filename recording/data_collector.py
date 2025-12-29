@@ -48,11 +48,6 @@ def application_callback(image: EyetrackerImage, camera_context: CameraContext):
     new = image.raw_image[y_list[0]:y_list[-1], x_list[0]:x_list[-1]]
     new[new_mask == 0, :] = 0
 
-    # top right: 64 20 56 18 -> 오른쪽일수록 흰색이 오른쪽으로
-    # top left: 42 16 59 13
-    # bottom left 50 19 63 17 -> 아래볼수록
-    # bottom right 83 12 57 15
-
     white_part = np.logical_and(new.mean(axis=2) >= 50, new_mask == 1)  # TODO: Fix this hardcoded value
     black_part = np.logical_and(new.mean(axis=2) < 50, new_mask == 1)
 
