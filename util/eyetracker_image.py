@@ -17,7 +17,6 @@ import cv2
 import numpy as np
 
 from util import faceparser_wrapper
-from util.camera_context import CameraContext
 from util.yolo_wrapper import parse_face
 
 
@@ -31,7 +30,7 @@ class EyetrackerImage:
         keypoints: FaceParser keypoints data
     """
     
-    def __init__(self, original_image: np.ndarray):
+    def __init__(self, original_image: np.ndarray, raw_opencv: np.ndarray):
         """Initializes a LabeledImage object
 
         Args:
@@ -40,6 +39,7 @@ class EyetrackerImage:
         """
 
         self.raw_image = original_image
+        self.raw_image_opencv = raw_opencv
 
         parsed_face, x_size, y_size = parse_face(original_image)
         self.yolo_parsed_image = cv2.resize(original_image[parsed_face].reshape(y_size, x_size, 3), original_image.shape[0:2])

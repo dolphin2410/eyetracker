@@ -24,7 +24,7 @@ class EyetrackerApplication:
             try:
                 _, frame = video_capture.read()
 
-                labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)))
+                labeled_image = EyetrackerImage(cv2.resize(frame, (512, 512)), frame)
                 
                 if application_callback is not None:
                     application_callback(labeled_image, self.camera_context)
