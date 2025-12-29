@@ -38,5 +38,5 @@ class CameraContext:
         """
 
         self.timer = Timer()
-        self.settings = {}
-        self.history_manager = EyetrackerHistory()
+        self.settings = { "is_valid": True }
+        self.eyetracker_history = EyetrackerHistory()

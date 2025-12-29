@@ -18,6 +18,9 @@ class EyetrackerApplication:
         video_capture = cv2.VideoCapture(self.video_source)
 
         while video_capture.isOpened():
+            if self.camera_context.settings['is_valid'] == False:
+                break
+
             try:
                 _, frame = video_capture.read()
 

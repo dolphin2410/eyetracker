@@ -20,16 +20,14 @@ from util.eyetracker_history import EyetrackerHistoryFrame
 from util.eyetracker_image import EyetrackerImage
 from util.faceparser_wrapper import KEYPOINT_INDEX_TO_NAME
 
-def application_callback(image: EyetrackerImage, camera_context: CameraContext):
-    image.raw_image = camera_context.timer.display_timer(image.raw_image)
+import threading
 
-    if "start_record" in camera_context.settings:
-        if camera_context.settings["start_record"]:
-            frame = EyetrackerHistoryFrame(image.keypoints)
-            camera_context.history_manager.append_frame(frame)
-        else:
-            camera_context.history_manager.save_history()
-            del camera_context.settings["start_record"]
+def application_callback(image: EyetrackerImage, camera_context: CameraContext):
+
+    if "start_record" in camera_context.settings and not camera_context.settings["start_record"]:
+        camera_context.eyetracker_history.save_history('hello.json')
+        camera_context.settings['is_valid'] = False
+        del camera_context.settings["start_record"]
 
     matrix = np.zeros((512, 512))
     for keypoint_index, keypoint_data in enumerate(image.keypoints):
@@ -75,12 +73,14 @@ def application_callback(image: EyetrackerImage, camera_context: CameraContext):
     image.raw_image = np.zeros((512, 512, 3)).astype(np.uint8)
     image.raw_image[:new.shape[0], :new.shape[1]] = new
 
+    image.raw_image = camera_context.timer.display_timer(image.raw_image)
+
         
 def exit_callback(application: EyetrackerApplication):
     camera_context = application.camera_context
-
+    
     if "start_record" in camera_context.settings and camera_context.settings["start_record"]:
-        camera_context.history_manager.save_history()
+        camera_context.eyetracker_history.save_history('hello.json')
         del camera_context.settings["start_record"]
 
 class LiveDataCollector():
