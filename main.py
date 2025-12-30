@@ -13,11 +13,15 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import math
+import random
+import time
 from recording.data_collector import LiveDataCollector
 from util.faceparser_wrapper import load_faceparser_model
 from util.yolo_wrapper import load_yolo_model
 import tkinter as tk
 import numpy as np
+from PIL import Image, ImageTk
 
 load_faceparser_model()
 load_yolo_model()
@@ -28,140 +32,182 @@ def get_eyeball_loc():
     curr_frame = live_data_collector.application.camera_context.eyetracker_history.curr_frame
     return curr_frame.norm_x, curr_frame.norm_y
 
-def generate_random_targets(width, height, n_points=20, margin_ratio=0.08, min_dist_ratio=0.12):
-    margin = int(min(width, height) * margin_ratio)
-    min_dist = int(min(width, height) * min_dist_ratio)
+WINDOW_W = 800
+WINDOW_H = 600
 
-    targets = []
-    while len(targets) < n_points:
-        x = np.random.uniform(margin, width - margin)
-        y = np.random.uniform(margin, height - margin)
+GRID_X = 5
+GRID_Y = 4
+JITTER = 15
+SAMPLES_PER_POINT = 4
+REST_TIME_MS = 500
+SAMPLE_INTERVAL_MS = 50
 
-        if all((x - tx) ** 2 + (y - ty) ** 2 > min_dist ** 2 for tx, ty in targets):
-            targets.append((x, y))
-    return targets
+CHAR_SIZE = 100
+HIT_RADIUS = 60
+RESPAWN_TIME = 1500
+FPS = 60
 
+root = tk.Tk()
+root.title("Eye Tracking Calibration + Game")
+root.update_idletasks()
 
-class EyeTrackerCalibration:
-    def __init__(self, root):
-        self.root = root
+screen_w = root.winfo_screenwidth()
+screen_h = root.winfo_screenheight()
 
-        root.attributes("-fullscreen", True)
-        root.configure(bg="black")
-        root.bind("<Escape>", lambda e: root.destroy())
+x = (screen_w - WINDOW_W) // 2
+y = (screen_h - WINDOW_H) // 2
 
-        self.W = root.winfo_screenwidth()
-        self.H = root.winfo_screenheight()
+root.geometry(f"{WINDOW_W}x{WINDOW_H}+{x}+{y}")
 
-        self.canvas = tk.Canvas(
-            root,
-            width=self.W,
-            height=self.H,
-            bg="black",
-            highlightthickness=0
-        )
-        self.canvas.pack(fill="both", expand=True)
+canvas = tk.Canvas(root, width=WINDOW_W, height=WINDOW_H, bg="black")
+canvas.pack()
 
-        self.targets = generate_random_targets(self.W, self.H, n_points=20)
-        self.samples_per_target = 4
-        self.sample_rest_ms = 500
-        self.initial_stabilize_ms = 700
+xs = np.linspace(0.1, 0.9, GRID_X) * WINDOW_W
+ys = np.linspace(0.1, 0.9, GRID_Y) * WINDOW_H
 
-        self.eye_samples = []
-        self.screen_samples = []
+calib_targets = []
+for yy in ys:
+    for xx in xs:
+        calib_targets.append((
+            xx + random.randint(-JITTER, JITTER),
+            yy + random.randint(-JITTER, JITTER)
+        ))
 
-        self.current_target_idx = 0
-        self.current_eye_buffer = []
+random.shuffle(calib_targets)
 
-        self.A = None
-        self.b = None
+eye_samples = []
+screen_samples = []
 
-        self.prev_screen_point = None
+current_target_idx = 0
+current_sample_idx = 0
+target_dot_id = None
 
-        self.root.after(1000, self.show_target)
+def draw_red_dot(x, y):
+    global target_dot_id
+    if target_dot_id:
+        canvas.delete(target_dot_id)
+    target_dot_id = canvas.create_oval(
+        x - 20, y - 20,
+        x + 20, y + 20,
+        fill="red", outline=""
+    )
 
-    def show_target(self):
-        if self.current_target_idx >= len(self.targets):
-            self.finish_calibration()
+def start_calibration():
+    root.after(500, show_next_target)
+
+def show_next_target():
+    global current_sample_idx
+
+    if current_target_idx >= len(calib_targets):
+        finish_calibration()
+        return
+
+    tx, ty = calib_targets[current_target_idx]
+    draw_red_dot(tx, ty)
+
+    current_sample_idx = 0
+    root.after(REST_TIME_MS, collect_one_sample)
+
+def collect_one_sample():
+    global current_sample_idx, current_target_idx
+
+    ex, ey = get_eyeball_loc()
+    tx, ty = calib_targets[current_target_idx]
+
+    eye_samples.append([ex, ey, 1.0])
+    screen_samples.append([tx, ty])
+
+    current_sample_idx += 1
+
+    if current_sample_idx < SAMPLES_PER_POINT:
+        root.after(SAMPLE_INTERVAL_MS, collect_one_sample)
+    else:
+        current_target_idx += 1
+        root.after(REST_TIME_MS, show_next_target)
+
+def finish_calibration():
+    global A
+
+    canvas.delete("all")
+
+    X = np.array(eye_samples)
+    Y = np.array(screen_samples)
+
+    A, _, _, _ = np.linalg.lstsq(X, Y, rcond=None)
+
+    print("Calibration completed.")
+    start_game()
+
+def eye_to_screen(ex, ey):
+    v = np.array([ex, ey, 1.0])
+    sx, sy = v @ A
+    return sx, sy
+
+santa_img = Image.open("assets/santa.png").resize((CHAR_SIZE, CHAR_SIZE))
+rudolph_img = Image.open("assets/rudolph.png").resize((CHAR_SIZE, CHAR_SIZE))
+
+santa_tk = ImageTk.PhotoImage(santa_img)
+rudolph_tk = ImageTk.PhotoImage(rudolph_img)
+
+class Character:
+    def __init__(self, image):
+        self.image = image
+        self.id = None
+        self.x = 0
+        self.y = 0
+        self.alive = False
+
+    def spawn(self):
+        self.x = random.randint(CHAR_SIZE, WINDOW_W - CHAR_SIZE)
+        self.y = random.randint(CHAR_SIZE, WINDOW_H - CHAR_SIZE)
+        self.id = canvas.create_image(self.x, self.y, image=self.image)
+        self.alive = True
+
+    def kill(self):
+        if self.id:
+            canvas.delete(self.id)
+        self.alive = False
+        root.after(RESPAWN_TIME, self.spawn)
+
+    def check_hit(self, gx, gy):
+        if not self.alive:
             return
+        if math.hypot(self.x - gx, self.y - gy) < HIT_RADIUS:
+            self.kill()
 
-        self.canvas.delete("all")
+characters = []
+gaze_dot_id = None
 
-        x, y = self.targets[self.current_target_idx]
-        r = 12
+def draw_gaze_dot(x, y):
+    global gaze_dot_id
+    if gaze_dot_id:
+        canvas.delete(gaze_dot_id)
+    gaze_dot_id = canvas.create_oval(
+        x - 4, y - 4,
+        x + 4, y + 4,
+        fill="red", outline=""
+    )
 
-        self.canvas.create_oval(
-            x - r, y - r,
-            x + r, y + r,
-            fill="red"
-        )
+def game_loop():
+    ex, ey = get_eyeball_loc()
+    gx, gy = eye_to_screen(ex, ey)
 
-        self.current_eye_buffer = []
+    draw_gaze_dot(gx, gy)
 
-        self.root.after(self.initial_stabilize_ms, self.collect_sample)
+    for c in characters:
+        c.check_hit(gx, gy)
 
-    def collect_sample(self):
-        ex, ey = get_eyeball_loc()
-        self.current_eye_buffer.append([ex, ey])
+    root.after(int(1000 / FPS), game_loop)
 
-        if len(self.current_eye_buffer) < self.samples_per_target:
-            self.root.after(self.sample_rest_ms, self.collect_sample)
-        else:
-            mean_eye = np.mean(self.current_eye_buffer, axis=0)
+def start_game():
+    global characters
+    characters = [
+        Character(santa_tk),
+        Character(rudolph_tk)
+    ]
+    for c in characters:
+        c.spawn()
+    game_loop()
 
-            self.eye_samples.append(mean_eye)
-            self.screen_samples.append(self.targets[self.current_target_idx])
-
-            self.current_target_idx += 1
-            self.show_target()
-
-    def finish_calibration(self):
-        print("Calibration finished")
-        self.fit_affine_model()
-        self.run_tracking()
-
-    def fit_affine_model(self):
-        E = np.array(self.eye_samples)
-        S = np.array(self.screen_samples)
-
-        ones = np.ones((E.shape[0], 1))
-        X = np.hstack([E, ones])
-
-        W, _, _, _ = np.linalg.lstsq(X, S, rcond=None)
-
-        self.A = W[:2, :].T
-        self.b = W[2, :]
-
-        print("A =\n", self.A)
-        print("b =", self.b)
-
-    def eye_to_screen(self, ex, ey):
-        return self.A @ np.array([ex, ey]) + self.b
-
-    def run_tracking(self):
-        self.canvas.delete("all")
-        self.prev_screen_point = None
-        self.track_loop()
-
-    def track_loop(self):
-        ex, ey = get_eyeball_loc()
-        sx, sy = self.eye_to_screen(ex, ey)
-
-        if self.prev_screen_point is not None:
-            px, py = self.prev_screen_point
-            self.canvas.create_line(
-                px, py, sx, sy,
-                fill="lime",
-                width=2
-            )
-
-        self.prev_screen_point = (sx, sy)
-        self.root.after(16, self.track_loop)
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Eye Tracker Calibration (with Rest Time)")
-
-    app = EyeTrackerCalibration(root)
-    root.mainloop()
+start_calibration()
+root.mainloop()
